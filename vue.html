@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="vue.js"></script>
+    <style>
+        *{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .todo{
+            width:500px;
+            height:auto;
+            margin: 30px auto;
+        }
+        .input{
+            width:100%;
+        }
+        .todo .input input{
+            width:100%;
+            height: 30px;
+        }
+        .btns{
+            width:100%;
+            height:30px;
+            color:navy;
+            margin: 20px auto;
+        }
+        .btns input{
+            float:right;
+        }
+        .listbox{
+            width: 100%;
+            height: auto;
+        }
+        .list{
+            width:100%;
+            height: 30px;
+            border-bottom: 1px solid #000;
+        }
+        .list span{
+            float: left;
+            margin-top: 6px;
+        }
+        .listbox .list .done{
+            width: 18px;
+            height: 18px;
+            border:1px solid #000 ;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .list .select{
+            color:darkred!important;
+            border:1px solid black;
+        }
+        .list .state{
+            background: red;
+        }
+        .list .del{
+            float:right;
+        }
+    </style>
+</head>
+<body>
+<div id="root">
+
+    <div class="todo">
+        <h3>TO DO LIST</h3>
+        <div class="input">
+            <input type="text" v-model="con" placeholder="请输入内容" @keydown.13="save">
+        </div>
+
+        <div class="btns">
+            <input type="button" value="全部" @click="changeStatus('all')" :class="{select:status=='all'}">
+            <input type="button" value="已完成" @click="changeStatus(1)" :class="{select:status==1}">
+            <input type="button" value="未完成" @click="changeStatus(0)" :class="{select:status==0}">
+        </div>
+        <ul class="listbox" v-show="datas.length>0">
+            <li class="list" v-for="item in datas">
+                <div v-show="item.show" @dblclick="changeShow(item)">
+                    <span class="done" @click="changeState(item)" :class="{state:item.state==1}"></span>
+                    <span class="con">{{item.title}}</span>
+                    <span class="del" @click="del(item.id)">删除</span>
+                </div>
+                <div v-show="!item.show">
+                    <input type="text" @blur="changeShow(item)" v-model="item.title">
+                </div>
+            </li>
+        </ul>
+        <ul v-show="datas.length==0">
+            没有数据
+        </ul>
+    </div>
+</div>
+<script>
+    new Vue({
+        el:"#root",
+        data:{
+            all:localStorage.todo?JSON.parse(localStorage.todo):[],
+            con:"",
+            status:"all",
+            show:false,
+
+        },
+        methods:{
+            save(){
+                if(!this.con){
+                    this.message="请输入内容";
+                    return;
+                }
+                this.message="";
+                var obj={};
+                obj.id=new Date().getTime()+1000*Math.random();
+                obj.title=this.con;
+                obj.state=0;
+                obj.show=true;
+                this.all.push(obj);
+                localStorage.todo=JSON.stringify(this.all);
+                this.con="";
+            },
+            del(id){
+                this.all=this.all.filter(function (item) {
+                    if(item.id!==id){
+                        return item;
+                    }
+                });
+                localStorage.todo=JSON.stringify(this.all);
+            },
+            changeState(item){
+                if(item.state==0){
+                    item.state=1
+                }else{
+                    item.state=0
+                }
+                localStorage.todo=JSON.stringify(this.all);
+            },
+            changeStatus(num){
+                this.status=num;
+            },
+            changeShow(item){
+                item.show=!item.show;
+                localStorage.todo=JSON.stringify(this.all);
+            }
+        },
+        computed:{
+            datas(){
+              return  this.all.filter((item) =>{
+                    if(this.status=="all"){
+                        return item;
+                    }else{
+                        if(this.status==item.state){
+                            return item;
+                        }
+                    }
+
+
+                })
+            }
+        },
+
+    })
+</script>
+</body>
+</html>
